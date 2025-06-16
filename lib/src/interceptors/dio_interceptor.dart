@@ -76,9 +76,24 @@ class ChuckerDioInterceptor extends Interceptor {
   }
 
   Future<void> _saveResponse(Response<dynamic> response) async {
+    var responseBodyString = '';
+    // Safely convert response.data to a JSON string or its toString() representation
+    if (response.data is Map || response.data is List) {
+      try {
+        responseBodyString = jsonEncode(response.data);
+      } catch (e) {
+        log('ChuckerFlutter: Failed to encode response body (Map/List): $e');
+        responseBodyString = '{"error": "Failed to encode response body: $e"}';
+      }
+    } else if (response.data != null) {
+      responseBodyString = response.data.toString();
+    } else {
+      responseBodyString = 'null';
+    }
+
     await SharedPreferencesManager.getInstance().addApiResponse(
       ApiResponse(
-        body: response.data,
+        body: responseBodyString,
         path: response.requestOptions.path,
         baseUrl: response.requestOptions.baseUrl,
         method: response.requestOptions.method,

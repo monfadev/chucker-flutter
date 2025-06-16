@@ -27,23 +27,20 @@ class SharedPreferencesManager {
 
   ///[addApiResponse] sets an API response to local disk
   Future<void> addApiResponse(ApiResponse apiResponse) async {
-    final newResponses = List<ApiResponse>.empty(growable: true);
+    final newResponses = List<Map<String, dynamic>>.empty(growable: true);
 
     final previousResponses = await getAllApiResponses();
 
-    if (previousResponses.length == ChuckerUiHelper.settings.apiThresholds) {
+    if (previousResponses.length >= ChuckerUiHelper.settings.apiThresholds) {
       previousResponses.removeAt(previousResponses.length - 1);
     }
 
     newResponses
-      ..addAll(previousResponses)
-      ..add(apiResponse);
+      ..addAll(previousResponses.map((res) => res.toJson()))
+      ..add(apiResponse.toJson());
 
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      _kApiResponses,
-      jsonEncode(newResponses),
-    );
+    await preferences.setString(_kApiResponses, jsonEncode(newResponses));
   }
 
   ///[getAllApiResponses] returns all api responses saved in local disk
